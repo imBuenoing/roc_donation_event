@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donation Pattern Calculator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="container">
+        <h1>Donation Pattern Calculator</h1>
+        <p>Find the cheapest pattern for 10 donations. Edit the costs below and click calculate.</p>
+
+        <div class="settings-card">
+            <h2>Settings</h2>
+            <div class="inputs-grid">
+                <div class="input-group">
+                    <label for="costA">Cost of Item A</label>
+                    <input type="number" id="costA" value="26000">
+                </div>
+                <div class="input-group">
+                    <label for="costB">Cost of Item B</label>
+                    <input type="number" id="costB" value="480">
+                </div>
+                <div class="input-group">
+                    <label for="costC">Cost of Item C</label>
+                    <input type="number" id="costC" value="200">
+                </div>
+                <div class="input-group">
+                    <label for="costD">Cost of Item D</label>
+                    <input type="number" id="costD" value="200">
+                </div>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="includeD" checked>
+                <label for="includeD">Item D is available for donation</label>
+            </div>
+            <button id="calculateBtn">Calculate Cheapest Pattern</button>
+        </div>
+
+        <div class="results-card">
+            <h2>Optimal Donation Pattern</h2>
+            <div id="result-summary">
+                Click the button to see the results.
+            </div>
+            <table id="result-table">
+                <thead>
+                    <tr>
+                        <th>Try</th>
+                        <th>Item to Donate</th>
+                        <th>Cost for this Try</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Results will be injected here by JavaScript -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
