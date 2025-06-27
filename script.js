@@ -12,7 +12,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const resultSummaryEl = document.getElementById('result-summary');
     const donationCountsEl = document.getElementById('donation-counts-summary');
     const resultTableBodyEl = document.querySelector('#result-table tbody');
-    
+    const totalQuantitySummaryEl = document.getElementById('total-quantity-summary'); // Get the new container
+    const totalQuantityTextEl = document.getElementById('total-quantity-text'); // Get the new text element
+
     // --- EVENT LISTENER ---
     calculateBtn.addEventListener('click', calculateAndDisplayPattern);
 
@@ -33,17 +35,17 @@ document.addEventListener('DOMContentLoaded', () => {
             availableItems = availableItems.filter(item => item !== 'Item D');
         }
 
-        // 3. Initialize variables for the calculation loop
+        // 3. Initialize variables
         let totalCost = 0;
         const donationCounts = { 'Item A': 0, 'Item B': 0, 'Item C': 0, 'Item D': 0 };
+        const totalQuantities = { 'Item A': 0, 'Item B': 0, 'Item C': 0, 'Item D': 0 }; // NEW: Track total quantities
         const results = [];
         const TOTAL_TRIES = 10;
 
-        // 4. Main calculation loop (Greedy Algorithm)
+        // 4. Main calculation loop
         for (let i = 1; i <= TOTAL_TRIES; i++) {
             let cheapestOption = { name: null, cost: Infinity, quantity: 0 };
 
-            // Find the cheapest donation for the current try
             availableItems.forEach(itemName => {
                 const count = donationCounts[itemName];
                 const quantity = itemData[itemName].quantities[count];
@@ -54,10 +56,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             });
 
-            // If a valid option was found, record it
             if (cheapestOption.name) {
                 totalCost += cheapestOption.cost;
                 donationCounts[cheapestOption.name]++;
+                totalQuantities[cheapestOption.name] += cheapestOption.quantity; // NEW: Add to total quantity
                 results.push({
                     tryNumber: i,
                     item: cheapestOption.name,
@@ -68,24 +70,29 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         // 5. Display the results
-        displayResults(results, totalCost, donationCounts);
+        displayResults(results, totalCost, donationCounts, totalQuantities); // Pass new data to display function
     }
 
-    function displayResults(results, totalCost, donationCounts) {
+    function displayResults(results, totalCost, donationCounts, totalQuantities) {
         // Clear previous results
         resultTableBodyEl.innerHTML = '';
         donationCountsEl.innerHTML = '';
+        totalQuantityTextEl.innerHTML = '';
+        totalQuantitySummaryEl.style.display = 'none'; // Hide summary by default
 
         if (results.length === 0) {
             resultSummaryEl.textContent = 'Could not calculate a pattern. Check costs.';
             return;
         }
 
+        // Show the summary section now that we have results
+        totalQuantitySummaryEl.style.display = 'block';
+
         // Update total cost summary
         const formattedTotalCost = totalCost.toLocaleString('en-US');
         resultSummaryEl.innerHTML = `Total Minimum Cost: <span style="color: #28a745;">${formattedTotalCost}</span>`;
 
-        // Update donation counts summary
+        // Update donation counts summary (number of times)
         const summaryParts = [];
         for (const [item, count] of Object.entries(donationCounts)) {
             if (count > 0) {
@@ -106,5 +113,14 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             resultTableBodyEl.appendChild(row);
         });
+
+        // NEW: Populate the total quantities summary at the bottom
+        const quantitySummaryParts = [];
+        for (const [item, total] of Object.entries(totalQuantities)) {
+            if (total > 0) {
+                quantitySummaryParts.push(`<strong>${item}</strong>: ${total.toLocaleString('en-US')}`);
+            }
+        }
+        totalQuantityTextEl.innerHTML = quantitySummaryParts.join('   |   ');
     }
 });
