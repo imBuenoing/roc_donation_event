@@ -1,126 +1,74 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // --- DATA ---
-    const itemData = {
-        'Item A': { quantities: [6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26] },
-        'Item B': { quantities: [180, 240, 300, 360, 420, 480, 520, 300, 360, 420, 480] },
-        'Item C': { quantities: [600, 800, 1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600] },
-        'Item D': { quantities: [600, 800, 1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2600] }
-    };
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Donation Pattern Calculator</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
 
-    // --- DOM ELEMENTS ---
-    const calculateBtn = document.getElementById('calculateBtn');
-    const resultSummaryEl = document.getElementById('result-summary');
-    const donationCountsEl = document.getElementById('donation-counts-summary');
-    const resultTableBodyEl = document.querySelector('#result-table tbody');
-    const totalQuantitySummaryEl = document.getElementById('total-quantity-summary'); // Get the new container
-    const totalQuantityTextEl = document.getElementById('total-quantity-text'); // Get the new text element
+    <div class="container">
+        <h1>Donation Pattern Calculator</h1>
+        <p>Find the cheapest pattern for 10 donations. Edit the costs below and click calculate.</p>
 
-    // --- EVENT LISTENER ---
-    calculateBtn.addEventListener('click', calculateAndDisplayPattern);
+        <div class="settings-card">
+            <h2>Settings</h2>
+            <div class="inputs-grid">
+                <div class="input-group">
+                    <label for="costA">Cost of Item A</label>
+                    <input type="number" id="costA" value="26000">
+                </div>
+                <div class="input-group">
+                    <label for="costB">Cost of Item B</label>
+                    <input type="number" id="costB" value="480">
+                </div>
+                <div class="input-group">
+                    <label for="costC">Cost of Item C</label>
+                    <input type="number" id="costC" value="200">
+                </div>
+                <div class="input-group">
+                    <label for="costD">Cost of Item D</label>
+                    <input type="number" id="costD" value="200">
+                </div>
+            </div>
+            <div class="checkbox-group">
+                <input type="checkbox" id="includeD" checked>
+                <label for="includeD">Item D is available for donation</label>
+            </div>
+            <button id="calculateBtn">Calculate Cheapest Pattern</button>
+        </div>
 
-    // --- CORE LOGIC ---
-    function calculateAndDisplayPattern() {
-        // 1. Get user inputs
-        const costs = {
-            'Item A': parseFloat(document.getElementById('costA').value) || 0,
-            'Item B': parseFloat(document.getElementById('costB').value) || 0,
-            'Item C': parseFloat(document.getElementById('costC').value) || 0,
-            'Item D': parseFloat(document.getElementById('costD').value) || 0
-        };
-        const includeD = document.getElementById('includeD').checked;
+        <div class="results-card">
+            <h2>Optimal Donation Pattern</h2>
+            <div id="result-summary">
+                Click the button to see the results.
+            </div>
+            <div id="donation-counts-summary">
+                <!-- Donation counts will be injected here -->
+            </div>
+            <table id="result-table">
+                <thead>
+                    <tr>
+                        <th>Try</th>
+                        <th>Item to Donate</th>
+                        <th>Quantity</th>
+                        <th>Cost for this Try</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Results will be injected here by JavaScript -->
+                </tbody>
+            </table>
 
-        // 2. Prepare the list of items to consider
-        let availableItems = Object.keys(itemData);
-        if (!includeD) {
-            availableItems = availableItems.filter(item => item !== 'Item D');
-        }
+            <!-- NEW: This section will show the total quantities -->
+            <div id="total-quantity-summary">
+                <h3>Total Quantities Donated</h3>
+                <p id="total-quantity-text"></p>
+            </div>
+        </div>
+    </div>
 
-        // 3. Initialize variables
-        let totalCost = 0;
-        const donationCounts = { 'Item A': 0, 'Item B': 0, 'Item C': 0, 'Item D': 0 };
-        const totalQuantities = { 'Item A': 0, 'Item B': 0, 'Item C': 0, 'Item D': 0 }; // NEW: Track total quantities
-        const results = [];
-        const TOTAL_TRIES = 10;
-
-        // 4. Main calculation loop
-        for (let i = 1; i <= TOTAL_TRIES; i++) {
-            let cheapestOption = { name: null, cost: Infinity, quantity: 0 };
-
-            availableItems.forEach(itemName => {
-                const count = donationCounts[itemName];
-                const quantity = itemData[itemName].quantities[count];
-                const cost = quantity * costs[itemName];
-
-                if (cost < cheapestOption.cost) {
-                    cheapestOption = { name: itemName, cost: cost, quantity: quantity };
-                }
-            });
-
-            if (cheapestOption.name) {
-                totalCost += cheapestOption.cost;
-                donationCounts[cheapestOption.name]++;
-                totalQuantities[cheapestOption.name] += cheapestOption.quantity; // NEW: Add to total quantity
-                results.push({
-                    tryNumber: i,
-                    item: cheapestOption.name,
-                    quantity: cheapestOption.quantity,
-                    cost: cheapestOption.cost
-                });
-            }
-        }
-        
-        // 5. Display the results
-        displayResults(results, totalCost, donationCounts, totalQuantities); // Pass new data to display function
-    }
-
-    function displayResults(results, totalCost, donationCounts, totalQuantities) {
-        // Clear previous results
-        resultTableBodyEl.innerHTML = '';
-        donationCountsEl.innerHTML = '';
-        totalQuantityTextEl.innerHTML = '';
-        totalQuantitySummaryEl.style.display = 'none'; // Hide summary by default
-
-        if (results.length === 0) {
-            resultSummaryEl.textContent = 'Could not calculate a pattern. Check costs.';
-            return;
-        }
-
-        // Show the summary section now that we have results
-        totalQuantitySummaryEl.style.display = 'block';
-
-        // Update total cost summary
-        const formattedTotalCost = totalCost.toLocaleString('en-US');
-        resultSummaryEl.innerHTML = `Total Minimum Cost: <span style="color: #28a745;">${formattedTotalCost}</span>`;
-
-        // Update donation counts summary (number of times)
-        const summaryParts = [];
-        for (const [item, count] of Object.entries(donationCounts)) {
-            if (count > 0) {
-                const plural = count === 1 ? 'time' : 'times';
-                summaryParts.push(`<strong>${item}</strong>: ${count} ${plural}`);
-            }
-        }
-        donationCountsEl.innerHTML = summaryParts.join('   |   ');
-
-        // Populate table
-        results.forEach(result => {
-            const row = document.createElement('tr');
-            row.innerHTML = `
-                <td>${result.tryNumber}</td>
-                <td>${result.item}</td>
-                <td>${result.quantity.toLocaleString('en-US')}</td>
-                <td>${result.cost.toLocaleString('en-US')}</td>
-            `;
-            resultTableBodyEl.appendChild(row);
-        });
-
-        // NEW: Populate the total quantities summary at the bottom
-        const quantitySummaryParts = [];
-        for (const [item, total] of Object.entries(totalQuantities)) {
-            if (total > 0) {
-                quantitySummaryParts.push(`<strong>${item}</strong>: ${total.toLocaleString('en-US')}`);
-            }
-        }
-        totalQuantityTextEl.innerHTML = quantitySummaryParts.join('   |   ');
-    }
-});
+    <script src="script.js"></script>
+</body>
+</html>
