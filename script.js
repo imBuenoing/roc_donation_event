@@ -1,6 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
     // --- DATA ---
-    // Hardcoded quantities for each donation tier
     const itemData = {
         'Item A': { quantities: [6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26] },
         'Item B': { quantities: [180, 240, 300, 360, 420, 480, 520, 300, 360, 420, 480] },
@@ -11,6 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- DOM ELEMENTS ---
     const calculateBtn = document.getElementById('calculateBtn');
     const resultSummaryEl = document.getElementById('result-summary');
+    const donationCountsEl = document.getElementById('donation-counts-summary');
     const resultTableBodyEl = document.querySelector('#result-table tbody');
     
     // --- EVENT LISTENER ---
@@ -41,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // 4. Main calculation loop (Greedy Algorithm)
         for (let i = 1; i <= TOTAL_TRIES; i++) {
-            let cheapestOption = { name: null, cost: Infinity };
+            let cheapestOption = { name: null, cost: Infinity, quantity: 0 };
 
             // Find the cheapest donation for the current try
             availableItems.forEach(itemName => {
@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const cost = quantity * costs[itemName];
 
                 if (cost < cheapestOption.cost) {
-                    cheapestOption = { name: itemName, cost: cost };
+                    cheapestOption = { name: itemName, cost: cost, quantity: quantity };
                 }
             });
 
@@ -61,27 +61,39 @@ document.addEventListener('DOMContentLoaded', () => {
                 results.push({
                     tryNumber: i,
                     item: cheapestOption.name,
+                    quantity: cheapestOption.quantity,
                     cost: cheapestOption.cost
                 });
             }
         }
         
         // 5. Display the results
-        displayResults(results, totalCost);
+        displayResults(results, totalCost, donationCounts);
     }
 
-    function displayResults(results, totalCost) {
+    function displayResults(results, totalCost, donationCounts) {
         // Clear previous results
         resultTableBodyEl.innerHTML = '';
+        donationCountsEl.innerHTML = '';
 
         if (results.length === 0) {
             resultSummaryEl.textContent = 'Could not calculate a pattern. Check costs.';
             return;
         }
 
-        // Update summary
-        const formattedTotalCost = totalCost.toLocaleString('en-US', { style: 'currency', currency: 'USD' });
-        resultSummaryEl.innerHTML = `Total Minimum Cost: <span style="color: #28a745;">${formattedTotalCost.replace('$', '')}</span>`;
+        // Update total cost summary
+        const formattedTotalCost = totalCost.toLocaleString('en-US');
+        resultSummaryEl.innerHTML = `Total Minimum Cost: <span style="color: #28a745;">${formattedTotalCost}</span>`;
+
+        // Update donation counts summary
+        const summaryParts = [];
+        for (const [item, count] of Object.entries(donationCounts)) {
+            if (count > 0) {
+                const plural = count === 1 ? 'time' : 'times';
+                summaryParts.push(`<strong>${item}</strong>: ${count} ${plural}`);
+            }
+        }
+        donationCountsEl.innerHTML = summaryParts.join('   |   ');
 
         // Populate table
         results.forEach(result => {
@@ -89,6 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
             row.innerHTML = `
                 <td>${result.tryNumber}</td>
                 <td>${result.item}</td>
+                <td>${result.quantity.toLocaleString('en-US')}</td>
                 <td>${result.cost.toLocaleString('en-US')}</td>
             `;
             resultTableBodyEl.appendChild(row);
